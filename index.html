@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Illustration Tracker Pro</title>
+<style>
+:root{
+  --bg:#F5F2F8;
+  --card:#EAE4F0;
+  --card-soft:#F8F6FA;
+  --line:#D7CFDF;
+  --accent:#B6A7C9;
+  --accent-deep:#8F7FA8;
+  --text:#534C60;
+  --muted:#7A7284;
+  --white:#FFFFFF;
+  --shadow:0 10px 24px rgba(83,76,96,.08);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;}
+body{padding:14px;}
+.app{width:386px;max-width:100%;margin:0 auto;}
+.card{background:rgba(234,228,240,.88);border:1px solid var(--line);border-radius:20px;padding:13px;margin-bottom:10px;box-shadow:var(--shadow);}
+.header{display:flex;gap:8px;align-items:center;justify-content:space-between;}
+.label{font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);margin-bottom:7px;font-weight:700;}
+.timer{font-size:43px;line-height:1.1;font-weight:750;letter-spacing:2px;text-align:center;margin:14px 0 10px;font-variant-numeric:tabular-nums;}
+.sub{font-size:12px;color:var(--muted);text-align:center;margin-top:-4px;margin-bottom:8px;}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:7px 0;}
+.stack{display:grid;gap:8px;}
+button,input,select{border:1px solid transparent;border-radius:12px;padding:8px 10px;background:var(--white);color:var(--text);font:inherit;font-size:13px;outline:none;}
+button{cursor:pointer;transition:.15s ease;white-space:nowrap;}
+button:hover{transform:translateY(-1px);border-color:var(--accent);}
+button.primary{background:var(--accent);color:#fff;border-color:var(--accent);}
+button.ghost{background:var(--card-soft);}
+button.danger{color:#8b596a;}
+select,input{width:100%;min-width:0;}
+.controls{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.bar{height:8px;background:var(--white);border-radius:999px;overflow:hidden;margin-top:5px;}
+.fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-deep));border-radius:999px;transition:width .2s ease;}
+.stat{margin-bottom:9px;}
+.statHead{display:flex;justify-content:space-between;font-size:13px;gap:8px;}
+.small{font-size:12px;color:var(--muted);}
+.total{border-top:1px solid var(--line);margin-top:9px;padding-top:9px;font-weight:700;}
+.two{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;}
+.themeGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;}
+.themeBtn{font-size:11px;padding:7px 4px;}
+.footerActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.empty{font-size:12px;color:var(--muted);padding:5px 0;}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="card">
+    <div class="label">Project</div>
+    <div class="header">
+      <select id="projectSelect"></select>
+      <button id="addProjectBtn" class="ghost">＋作品</button>
+    </div>
+    <div class="timer" id="timer">00:00:00</div>
+    <div class="sub" id="runningInfo">現在：停止中</div>
+    <div class="controls">
+      <button id="startBtn" class="primary">開始</button>
+      <button id="pauseBtn">一時停止</button>
+      <button id="stopBtn">記録</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="label">Stage</div>
+    <div class="two">
+      <select id="stageSelect"></select>
+      <button id="addStageBtn" class="ghost">＋工程</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="label">Today Goal</div>
+    <div class="row">
+      <span>今日の目標</span>
+      <span><input id="goalInput" type="number" min="0.5" step="0.5" style="width:72px;display:inline-block"> h</span>
+    </div>
+    <div class="bar"><div class="fill" id="goalFill"></div></div>
+    <div class="small" id="goalText"></div>
+  </div>
+
+  <div class="card">
+    <div class="label">Project Total</div>
+    <div id="projectStats"></div>
+  </div>
+
+  <div class="card">
+    <div class="label">Today</div>
+    <div id="todayStats"></div>
+  </div>
+
+  <div class="card">
+    <div class="label">Theme</div>
+    <div class="themeGrid">
+      <button class="themeBtn" data-theme="mist">Mist</button>
+      <button class="themeBtn" data-theme="dusty">Dusty</button>
+      <button class="themeBtn" data-theme="moon">Moon</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="label">Tools</div>
+    <div class="footerActions">
+      <button id="exportBtn" class="ghost">CSV出力</button>
+      <button id="resetBtn" class="danger">全削除</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const KEY = "illustration_tracker_pro_lavender_v2";
+const stagesDefault = ["ラフ","線画","下塗り","着彩","背景","仕上げ"];
+const themes = {
+  mist:{bg:"#F5F2F8",card:"#EAE4F0",line:"#D7CFDF",accent:"#B6A7C9",deep:"#8F7FA8",text:"#534C60",muted:"#7A7284"},
+  dusty:{bg:"#F3F0F6",card:"#E2DBEA",line:"#D1C8DA",accent:"#A998BD",deep:"#84729E",text:"#4E4658",muted:"#746B7E"},
+  moon:{bg:"#F7F5FA",card:"#E8E3F0",line:"#D8D0E2",accent:"#9D8CB5",deep:"#786792",text:"#4B4556",muted:"#756D80"}
+};
+let db = JSON.parse(localStorage.getItem(KEY) || "null");
+if(!db){
+  db = {currentProject:"若き肖像", currentTheme:"mist", goalHours:4, projects:{}};
+  db.projects["若き肖像"] = createProject();
+  save();
+}
+let running = false;
+let startedAt = 0;
+let elapsedMs = 0;
+
+function createProject(){
+  const totals = {};
+  stagesDefault.forEach(s => totals[s] = 0);
+  return {stages:[...stagesDefault], totals, daily:{}};
+}
+function save(){localStorage.setItem(KEY, JSON.stringify(db));}
+function todayKey(){return new Date().toLocaleDateString("sv-SE");}
+function project(){return db.projects[db.currentProject];}
+function fmt(sec){
+  const h = Math.floor(sec/3600);
+  const m = Math.floor((sec%3600)/60);
+  return `${h}h ${String(m).padStart(2,"0")}m`;
+}
+function timerFmt(ms){
+  const sec = Math.floor(ms/1000);
+  const h = String(Math.floor(sec/3600)).padStart(2,"0");
+  const m = String(Math.floor((sec%3600)/60)).padStart(2,"0");
+  const s = String(sec%60).padStart(2,"0");
+  return `${h}:${m}:${s}`;
+}
+function setTheme(name){
+  db.currentTheme = name;
+  const t = themes[name];
+  const r = document.documentElement.style;
+  r.setProperty("--bg",t.bg); r.setProperty("--card",t.card); r.setProperty("--line",t.line);
+  r.setProperty("--accent",t.accent); r.setProperty("--accent-deep",t.deep);
+  r.setProperty("--text",t.text); r.setProperty("--muted",t.muted);
+  save();
+}
+function renderProjects(){
+  const sel = document.getElementById("projectSelect");
+  sel.innerHTML = "";
+  Object.keys(db.projects).forEach(name => {
+    const opt = document.createElement("option");
+    opt.value = name; opt.textContent = name;
+    if(name === db.currentProject) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+function renderStages(){
+  const sel = document.getElementById("stageSelect");
+  const old = sel.value;
+  sel.innerHTML = "";
+  project().stages.forEach(stage => {
+    const opt = document.createElement("option");
+    opt.value = stage; opt.textContent = stage;
+    sel.appendChild(opt);
+  });
+  if(project().stages.includes(old)) sel.value = old;
+}
+function renderStats(){
+  const p = project();
+  const totalSec = Object.values(p.totals).reduce((a,b)=>a+b,0);
+  const projectStats = document.getElementById("projectStats");
+  projectStats.innerHTML = "";
+  p.stages.forEach(stage => {
+    const sec = p.totals[stage] || 0;
+    const pct = totalSec ? Math.round(sec / totalSec * 100) : 0;
+    projectStats.insertAdjacentHTML("beforeend", `<div class="stat"><div class="statHead"><span>${stage}</span><span>${fmt(sec)} / ${pct}%</span></div><div class="bar"><div class="fill" style="width:${pct}%"></div></div></div>`);
+  });
+  projectStats.insertAdjacentHTML("beforeend", `<div class="row total"><span>合計</span><span>${fmt(totalSec)}</span></div>`);
+
+  const day = p.daily[todayKey()] || {};
+  const todayStats = document.getElementById("todayStats");
+  todayStats.innerHTML = "";
+  let dayTotal = 0;
+  p.stages.forEach(stage => {
+    const sec = day[stage] || 0;
+    if(sec > 0){
+      dayTotal += sec;
+      todayStats.insertAdjacentHTML("beforeend", `<div class="row"><span>${stage}</span><span>${fmt(sec)}</span></div>`);
+    }
+  });
+  if(dayTotal === 0) todayStats.innerHTML = `<div class="empty">まだ今日の記録はありません</div>`;
+  todayStats.insertAdjacentHTML("beforeend", `<div class="row total"><span>今日の合計</span><span>${fmt(dayTotal)}</span></div>`);
+
+  const goalSec = (Number(document.getElementById("goalInput").value) || 4) * 3600;
+  const goalPct = Math.min(100, Math.round(dayTotal / goalSec * 100));
+  document.getElementById("goalFill").style.width = goalPct + "%";
+  document.getElementById("goalText").textContent = `${fmt(dayTotal)} / ${fmt(goalSec)}（${goalPct}%）`;
+}
+function renderAll(){renderProjects(); renderStages(); renderStats(); document.getElementById("goalInput").value = db.goalHours || 4; setTheme(db.currentTheme || "mist");}
+function updateTimer(){
+  const ms = running ? Date.now() - startedAt : elapsedMs;
+  document.getElementById("timer").textContent = timerFmt(ms);
+  const stage = document.getElementById("stageSelect").value || "-";
+  document.getElementById("runningInfo").textContent = running ? `現在：${stage}を計測中` : "現在：停止中";
+  requestAnimationFrame(updateTimer);
+}
+function startTimer(){
+  if(!running){ running = true; startedAt = Date.now() - elapsedMs; }
+}
+function pauseTimer(){
+  if(running){ elapsedMs = Date.now() - startedAt; running = false; }
+}
+function stopTimer(){
+  const sec = Math.floor((running ? Date.now() - startedAt : elapsedMs) / 1000);
+  if(sec <= 0) return;
+  const stage = document.getElementById("stageSelect").value;
+  const p = project();
+  p.totals[stage] = (p.totals[stage] || 0) + sec;
+  const day = todayKey();
+  if(!p.daily[day]) p.daily[day] = {};
+  p.daily[day][stage] = (p.daily[day][stage] || 0) + sec;
+  elapsedMs = 0; running = false; save(); renderStats();
+}
+function exportCSV(){
+  let rows = [["project","date","stage","seconds","time"]];
+  Object.entries(db.projects).forEach(([projectName,p]) => {
+    Object.entries(p.daily).forEach(([date,stages]) => {
+      Object.entries(stages).forEach(([stage,sec]) => rows.push([projectName,date,stage,sec,fmt(sec)]));
+    });
+  });
+  const csv = rows.map(r => r.map(v => `"${String(v).replaceAll('"','""')}"`).join(",")).join("\n");
+  const blob = new Blob([csv], {type:"text/csv;charset=utf-8"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = "illustration_tracker_log.csv"; a.click();
+  URL.revokeObjectURL(url);
+}
+
+document.getElementById("startBtn").onclick = startTimer;
+document.getElementById("pauseBtn").onclick = pauseTimer;
+document.getElementById("stopBtn").onclick = stopTimer;
+document.getElementById("projectSelect").onchange = e => {db.currentProject = e.target.value; elapsedMs = 0; running = false; save(); renderStages(); renderStats();};
+document.getElementById("addProjectBtn").onclick = () => {
+  const name = prompt("作品名を入力");
+  if(!name) return;
+  if(!db.projects[name]) db.projects[name] = createProject();
+  db.currentProject = name; save(); renderAll();
+};
+document.getElementById("addStageBtn").onclick = () => {
+  const name = prompt("工程名を入力");
+  if(!name) return;
+  const p = project();
+  if(!p.stages.includes(name)) p.stages.push(name);
+  if(p.totals[name] == null) p.totals[name] = 0;
+  save(); renderStages(); renderStats();
+};
+document.getElementById("goalInput").oninput = e => {db.goalHours = Number(e.target.value) || 4; save(); renderStats();};
+document.querySelectorAll(".themeBtn").forEach(btn => btn.onclick = () => setTheme(btn.dataset.theme));
+document.getElementById("exportBtn").onclick = exportCSV;
+document.getElementById("resetBtn").onclick = () => {
+  if(confirm("すべての記録を削除しますか？")){ localStorage.removeItem(KEY); location.reload(); }
+};
+
+renderAll();
+updateTimer();
+</script>
+</body>
+</html>
