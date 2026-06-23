@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>Illustration Work Timer</title>
+  <style>
+    :root {
+      --bg: #e6e8ef;
+      --text: #132739;
+      --muted: #607184;
+      --panel: #f4f6fa;
+      --panel-strong: #fbfcfe;
+      --line: #c9d0dc;
+      --accent: #7f91ae;
+      --accent-strong: #667b9d;
+      --accent-soft: #d9deea;
+      --danger: #9b6570;
+      --shadow: 0 10px 30px rgba(19, 39, 57, 0.08);
+      --radius: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      min-height: 100%;
+    }
+
+    body {
+      margin: 0;
+      padding: 18px;
+      background: var(--bg);
+      color: var(--text);
+      font-family:
+        Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+        "Segoe UI", "Noto Sans JP", sans-serif;
+      font-variant-numeric: tabular-nums;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .app {
+      width: min(1180px, 100%);
+      margin: 0 auto;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .brand {
+      min-width: 0;
+    }
+
+    .eyebrow {
+      margin: 0 0 3px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(18px, 2vw, 24px);
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(360px, 1.15fr) minmax(300px, 0.95fr) minmax(280px, 0.9fr);
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .panel {
+      min-width: 0;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+
+    .panel-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .panel-title h2 {
+      margin: 0;
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .helper {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .select,
+    .input {
+      width: 100%;
+      min-width: 0;
+      border: 1px solid var(--line);
+      background: var(--panel-strong);
+      color: var(--text);
+      border-radius: 11px;
+      padding: 9px 10px;
+      outline: none;
+      transition: border-color 0.16s ease, box-shadow 0.16s ease;
+    }
+
+    .select:focus,
+    .input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(127, 145, 174, 0.16);
+    }
+
+    .project-row,
+    .stage-row,
+    .goal-row {
+      display: grid;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .project-row {
+      grid-template-columns: minmax(0, 1fr) auto auto;
+    }
+
+    .stage-row {
+      grid-template-columns: minmax(0, 1fr) auto auto;
+      margin-top: 10px;
+    }
+
+    .goal-row {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .icon-button,
+    .secondary-button,
+    .primary-button,
+    .danger-button {
+      border-radius: 11px;
+      border: 1px solid transparent;
+      padding: 9px 11px;
+      line-height: 1;
+      transition: transform 0.14s ease, background 0.14s ease, border-color 0.14s ease;
+    }
+
+    .icon-button:hover,
+    .secondary-button:hover,
+    .primary-button:hover,
+    .danger-button:hover {
+      transform: translateY(-1px);
+    }
+
+    .icon-button,
+    .secondary-button {
+      color: var(--text);
+      background: var(--panel-strong);
+      border-color: var(--line);
+    }
+
+    .primary-button {
+      color: #fff;
+      background: var(--accent-strong);
+    }
+
+    .danger-button {
+      color: #fff;
+      background: var(--danger);
+    }
+
+    .timer-wrap {
+      display: grid;
+      place-items: center;
+      min-height: 175px;
+      padding: 10px 0 2px;
+    }
+
+    .timer {
+      font-size: clamp(48px, 6vw, 76px);
+      font-weight: 750;
+      letter-spacing: 0.03em;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .timer-status {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+    }
+
+    .timer-controls {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .timer-controls button {
+      min-height: 42px;
+    }
+
+    .summary-strip {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .metric {
+      background: var(--panel-strong);
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      padding: 11px;
+    }
+
+    .metric-label {
+      color: var(--muted);
+      font-size: 11px;
+      margin-bottom: 4px;
+    }
+
+    .metric-value {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .stats-list {
+      display: grid;
+      gap: 11px;
+      max-height: 352px;
+      overflow: auto;
+      padding-right: 3px;
+    }
+
+    .stat-item {
+      display: grid;
+      gap: 5px;
+    }
+
+    .stat-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .stat-name {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 13px;
+      font-weight: 650;
+    }
+
+    .stat-time {
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .bar {
+      height: 8px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--accent), var(--accent-strong));
+      transition: width 0.25s ease;
+    }
+
+    .empty {
+      display: grid;
+      place-items: center;
+      min-height: 140px;
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+      border: 1px dashed var(--line);
+      border-radius: 14px;
+      padding: 18px;
+    }
+
+    .today-total {
+      margin-bottom: 12px;
+      padding: 14px;
+      background: var(--panel-strong);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
+
+    .today-total-label {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .today-total-value {
+      margin-top: 2px;
+      font-size: 30px;
+      font-weight: 750;
+      letter-spacing: -0.02em;
+    }
+
+    .goal-card {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+    }
+
+    .goal-caption {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin: 8px 0 6px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .footer-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .footer-actions button {
+      flex: 1 1 120px;
+    }
+
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 20;
+      max-width: min(360px, calc(100vw - 36px));
+      padding: 11px 14px;
+      color: #fff;
+      background: var(--text);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transform: translateY(8px);
+      pointer-events: none;
+      transition: opacity 0.18s ease, transform 0.18s ease;
+      font-size: 13px;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    dialog {
+      width: min(420px, calc(100vw - 28px));
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 0;
+      color: var(--text);
+      background: var(--panel);
+      box-shadow: 0 24px 70px rgba(19, 39, 57, 0.24);
+    }
+
+    dialog::backdrop {
+      background: rgba(19, 39, 57, 0.34);
+      backdrop-filter: blur(3px);
+    }
+
+    .dialog-body {
+      padding: 18px;
+    }
+
+    .dialog-body h3 {
+      margin: 0 0 12px;
+      font-size: 18px;
+    }
+
+    .dialog-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    @media (max-width: 930px) {
+      .layout {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .timer-panel {
+        grid-column: 1 / -1;
+      }
+    }
+
+    @media (max-width: 650px) {
+      body {
+        padding: 10px;
+      }
+
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .top-actions {
+        width: 100%;
+        justify-content: stretch;
+      }
+
+      .top-actions button {
+        flex: 1;
+      }
+
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .timer-panel {
+        grid-column: auto;
+      }
+
+      .project-row,
+      .stage-row {
+        grid-template-columns: minmax(0, 1fr) auto;
+      }
+
+      .project-row .danger-button,
+      .stage-row .danger-button {
+        grid-column: 1 / -1;
+      }
+
+      .timer {
+        font-size: clamp(46px, 15vw, 64px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <p class="eyebrow">Illustration Work Log</p>
+        <h1>作業時間トラッカー</h1>
+      </div>
+      <div class="top-actions">
+        <button class="secondary-button" id="exportCsvBtn" type="button">CSV出力</button>
+        <button class="secondary-button" id="backupBtn" type="button">バックアップ</button>
+        <button class="secondary-button" id="restoreBtn" type="button">復元</button>
+      </div>
+    </header>
+
+    <section class="layout">
+      <article class="panel timer-panel">
+        <div class="panel-title">
+          <h2>Timer</h2>
+          <span class="helper" id="saveStatus">自動保存</span>
+        </div>
+
+        <div class="project-row">
+          <select class="select" id="projectSelect" aria-label="作品を選択"></select>
+          <button class="icon-button" id="addProjectBtn" type="button" title="作品を追加">＋作品</button>
+          <button class="danger-button" id="deleteProjectBtn" type="button" title="作品を削除">削除</button>
+        </div>
+
+        <div class="stage-row">
+          <select class="select" id="stageSelect" aria-label="工程を選択"></select>
+          <button class="icon-button" id="addStageBtn" type="button" title="工程を追加">＋工程</button>
+          <button class="danger-button" id="deleteStageBtn" type="button" title="工程を削除">削除</button>
+        </div>
+
+        <div class="timer-wrap">
+          <div>
+            <div class="timer" id="timer">00:00:00</div>
+            <div class="timer-status" id="timerStatus">停止中</div>
+          </div>
+        </div>
+
+        <div class="timer-controls">
+          <button class="primary-button" id="startBtn" type="button">開始</button>
+          <button class="secondary-button" id="pauseBtn" type="button">一時停止</button>
+          <button class="secondary-button" id="stopBtn" type="button">記録して終了</button>
+        </div>
+
+        <div class="summary-strip">
+          <div class="metric">
+            <div class="metric-label">作品累計</div>
+            <div class="metric-value" id="projectTotalMetric">0時間0分</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">今日の合計</div>
+            <div class="metric-value" id="todayTotalMetric">0時間0分</div>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-title">
+          <h2>Project Total</h2>
+          <span class="helper">工程別の割合</span>
+        </div>
+        <div class="stats-list" id="projectStats"></div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-title">
+          <h2>Today</h2>
+          <span class="helper" id="todayLabel"></span>
+        </div>
+
+        <div class="today-total">
+          <div class="today-total-label">今日の作業時間</div>
+          <div class="today-total-value" id="todayTotal">0時間0分</div>
+        </div>
+
+        <div class="stats-list" id="todayStats"></div>
+
+        <div class="goal-card">
+          <div class="goal-row">
+            <label class="helper" for="goalHours">今日の目標時間</label>
+            <input class="input" id="goalHours" type="number" min="0.25" max="24" step="0.25" value="4" style="width: 88px;" />
+          </div>
+          <div class="goal-caption">
+            <span id="goalProgressText">0時間0分 / 4時間0分</span>
+            <span id="goalPercentText">0%</span>
+          </div>
+          <div class="bar">
+            <div class="bar-fill" id="goalFill"></div>
+          </div>
+        </div>
+
+        <div class="footer-actions">
+          <button class="secondary-button" id="renameProjectBtn" type="button">作品名を変更</button>
+          <button class="secondary-button" id="renameStageBtn" type="button">工程名を変更</button>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <input id="restoreInput" type="file" accept="application/json" hidden />
+
+  <dialog id="textDialog">
+    <form method="dialog" class="dialog-body" id="textDialogForm">
+      <h3 id="dialogTitle">入力</h3>
+      <input class="input" id="dialogInput" type="text" autocomplete="off" />
+      <div class="dialog-actions">
+        <button class="secondary-button" value="cancel" type="submit">キャンセル</button>
+        <button class="primary-button" value="confirm" type="submit">決定</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const STORAGE_KEY = "illustration-work-timer-horizontal-v1";
+      const DEFAULT_STAGES = ["ラフ", "線画", "下塗り", "着彩", "背景", "仕上げ"];
+
+      const el = {
+        projectSelect: document.getElementById("projectSelect"),
+        stageSelect: document.getElementById("stageSelect"),
+        addProjectBtn: document.getElementById("addProjectBtn"),
+        deleteProjectBtn: document.getElementById("deleteProjectBtn"),
+        addStageBtn: document.getElementById("addStageBtn"),
+        deleteStageBtn: document.getElementById("deleteStageBtn"),
+        renameProjectBtn: document.getElementById("renameProjectBtn"),
+        renameStageBtn: document.getElementById("renameStageBtn"),
+        startBtn: document.getElementById("startBtn"),
+        pauseBtn: document.getElementById("pauseBtn"),
+        stopBtn: document.getElementById("stopBtn"),
+        timer: document.getElementById("timer"),
+        timerStatus: document.getElementById("timerStatus"),
+        projectStats: document.getElementById("projectStats"),
+        todayStats: document.getElementById("todayStats"),
+        todayTotal: document.getElementById("todayTotal"),
+        projectTotalMetric: document.getElementById("projectTotalMetric"),
+        todayTotalMetric: document.getElementById("todayTotalMetric"),
+        goalHours: document.getElementById("goalHours"),
+        goalFill: document.getElementById("goalFill"),
+        goalProgressText: document.getElementById("goalProgressText"),
+        goalPercentText: document.getElementById("goalPercentText"),
+        todayLabel: document.getElementById("todayLabel"),
+        exportCsvBtn: document.getElementById("exportCsvBtn"),
+        backupBtn: document.getElementById("backupBtn"),
+        restoreBtn: document.getElementById("restoreBtn"),
+        restoreInput: document.getElementById("restoreInput"),
+        saveStatus: document.getElementById("saveStatus"),
+        toast: document.getElementById("toast"),
+        textDialog: document.getElementById("textDialog"),
+        textDialogForm: document.getElementById("textDialogForm"),
+        dialogTitle: document.getElementById("dialogTitle"),
+        dialogInput: document.getElementById("dialogInput")
+      };
+
+      function createDefaultData() {
+        const id = crypto.randomUUID();
+        return {
+          version: 1,
+          currentProjectId: id,
+          goalHours: 4,
+          timer: {
+            running: false,
+            startedAt: null,
+            accumulatedMs: 0,
+            projectId: id,
+            stage: DEFAULT_STAGES[0]
+          },
+          projects: {
+            [id]: {
+              id,
+              name: "新しい作品",
+              stages: [...DEFAULT_STAGES],
+              totals: Object.fromEntries(DEFAULT_STAGES.map(stage => [stage, 0])),
+              daily: {}
+            }
+          }
+        };
+      }
+
+      function loadData() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return createDefaultData();
+          const parsed = JSON.parse(raw);
+          if (!parsed || !parsed.projects || !parsed.currentProjectId) {
+            return createDefaultData();
+          }
+          parsed.goalHours = Number(parsed.goalHours) || 4;
+          parsed.timer = parsed.timer || {
+            running: false,
+            startedAt: null,
+            accumulatedMs: 0,
+            projectId: parsed.currentProjectId,
+            stage: DEFAULT_STAGES[0]
+          };
+          return parsed;
+        } catch {
+          return createDefaultData();
+        }
+      }
+
+      let db = loadData();
+      let rafId = null;
+      let toastTimer = null;
+
+      function localDateKey(date = new Date()) {
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, "0");
+        const d = String(date.getDate()).padStart(2, "0");
+        return `${y}-${m}-${d}`;
+      }
+
+      function formatDateLabel(date = new Date()) {
+        return new Intl.DateTimeFormat("ja-JP", {
+          month: "numeric",
+          day: "numeric",
+          weekday: "short"
+        }).format(date);
+      }
+
+      function formatClock(totalMs) {
+        const totalSeconds = Math.max(0, Math.floor(totalMs / 1000));
+        const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
+        const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, "0");
+        const seconds = String(totalSeconds % 60).padStart(2, "0");
+        return `${hours}:${minutes}:${seconds}`;
+      }
+
+      function formatDuration(totalSeconds) {
+        const seconds = Math.max(0, Math.floor(totalSeconds));
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        if (hours === 0) return `${minutes}分`;
+        return `${hours}時間${minutes}分`;
+      }
+
+      function getCurrentProject() {
+        let project = db.projects[db.currentProjectId];
+        if (!project) {
+          const firstId = Object.keys(db.projects)[0];
+          db.currentProjectId = firstId;
+          project = db.projects[firstId];
+        }
+        return project;
+      }
+
+      function ensureProjectShape(project) {
+        project.stages = Array.isArray(project.stages) && project.stages.length
+          ? project.stages
+          : [...DEFAULT_STAGES];
+        project.totals = project.totals || {};
+        project.daily = project.daily || {};
+        for (const stage of project.stages) {
+          project.totals[stage] = Number(project.totals[stage]) || 0;
+        }
+      }
+
+      Object.values(db.projects).forEach(ensureProjectShape);
+
+      function saveData(showSaved = false) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+        if (showSaved) {
+          el.saveStatus.textContent = "保存済み";
+          setTimeout(() => {
+            el.saveStatus.textContent = "自動保存";
+          }, 1000);
+        }
+      }
+
+      function showToast(message) {
+        el.toast.textContent = message;
+        el.toast.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => el.toast.classList.remove("show"), 2200);
+      }
+
+      function getTimerElapsedMs() {
+        const timer = db.timer;
+        if (!timer.running || !timer.startedAt) return timer.accumulatedMs || 0;
+        return (timer.accumulatedMs || 0) + (Date.now() - timer.startedAt);
+      }
+
+      function resetTimerForCurrentSelection() {
+        const project = getCurrentProject();
+        db.timer = {
+          running: false,
+          startedAt: null,
+          accumulatedMs: 0,
+          projectId: project.id,
+          stage: el.stageSelect.value || project.stages[0]
+        };
+        saveData();
+        renderTimer();
+      }
+
+      function renderProjectOptions() {
+        el.projectSelect.innerHTML = "";
+        for (const project of Object.values(db.projects)) {
+          const option = document.createElement("option");
+          option.value = project.id;
+          option.textContent = project.name;
+          option.selected = project.id === db.currentProjectId;
+          el.projectSelect.appendChild(option);
+        }
+      }
+
+      function renderStageOptions() {
+        const project = getCurrentProject();
+        el.stageSelect.innerHTML = "";
+        for (const stage of project.stages) {
+          const option = document.createElement("option");
+          option.value = stage;
+          option.textContent = stage;
+          el.stageSelect.appendChild(option);
+        }
+
+        const timerStage = db.timer.projectId === project.id ? db.timer.stage : null;
+        const preferredStage = timerStage && project.stages.includes(timerStage)
+          ? timerStage
+          : project.stages[0];
+        el.stageSelect.value = preferredStage;
+      }
+
+      function makeStatItem(name, seconds, percent) {
+        const wrapper = document.createElement("div");
+        wrapper.className = "stat-item";
+
+        const head = document.createElement("div");
+        head.className = "stat-head";
+
+        const nameEl = document.createElement("span");
+        nameEl.className = "stat-name";
+        nameEl.textContent = name;
+
+        const timeEl = document.createElement("span");
+        timeEl.className = "stat-time";
+        timeEl.textContent = formatDuration(seconds);
+
+        const bar = document.createElement("div");
+        bar.className = "bar";
+
+        const fill = document.createElement("div");
+        fill.className = "bar-fill";
+        fill.style.width = `${Math.max(0, Math.min(100, percent))}%`;
+
+        head.append(nameEl, timeEl);
+        bar.appendChild(fill);
+        wrapper.append(head, bar);
+        return wrapper;
+      }
+
+      function renderStats() {
+        const project = getCurrentProject();
+        const dateKey = localDateKey();
+        const daily = project.daily[dateKey] || {};
+
+        const projectTotal = Object.values(project.totals).reduce((sum, sec) => sum + Number(sec || 0), 0);
+        const todayTotal = Object.values(daily).reduce((sum, sec) => sum + Number(sec || 0), 0);
+
+        el.projectStats.innerHTML = "";
+        if (projectTotal <= 0) {
+          const empty = document.createElement("div");
+          empty.className = "empty";
+          empty.textContent = "タイマーを記録すると、工程ごとの割合がここに表示されます。";
+          el.projectStats.appendChild(empty);
+        } else {
+          for (const stage of project.stages) {
+            const seconds = Number(project.totals[stage] || 0);
+            const percent = projectTotal > 0 ? (seconds / projectTotal) * 100 : 0;
+            el.projectStats.appendChild(makeStatItem(stage, seconds, percent));
+          }
+        }
+
+        el.todayStats.innerHTML = "";
+        if (todayTotal <= 0) {
+          const empty = document.createElement("div");
+          empty.className = "empty";
+          empty.textContent = "今日の記録はまだありません。";
+          el.todayStats.appendChild(empty);
+        } else {
+          for (const stage of project.stages) {
+            const seconds = Number(daily[stage] || 0);
+            if (seconds <= 0) continue;
+            const percent = (seconds / todayTotal) * 100;
+            el.todayStats.appendChild(makeStatItem(stage, seconds, percent));
+          }
+        }
+
+        el.projectTotalMetric.textContent = formatDuration(projectTotal);
+        el.todayTotalMetric.textContent = formatDuration(todayTotal);
+        el.todayTotal.textContent = formatDuration(todayTotal);
+        el.todayLabel.textContent = formatDateLabel();
+
+        const goalSeconds = Math.max(0.25, Number(db.goalHours) || 4) * 3600;
+        const goalPercent = Math.min(100, Math.round((todayTotal / goalSeconds) * 100));
+        el.goalHours.value = db.goalHours;
+        el.goalFill.style.width = `${goalPercent}%`;
+        el.goalProgressText.textContent = `${formatDuration(todayTotal)} / ${formatDuration(goalSeconds)}`;
+        el.goalPercentText.textContent = `${goalPercent}%`;
+      }
+
+      function renderTimer() {
+        const elapsedMs = getTimerElapsedMs();
+        el.timer.textContent = formatClock(elapsedMs);
+
+        if (db.timer.running) {
+          const project = db.projects[db.timer.projectId];
+          const projectName = project ? project.name : "作品";
+          el.timerStatus.textContent = `${projectName}・${db.timer.stage}を計測中`;
+          el.startBtn.disabled = true;
+          el.pauseBtn.disabled = false;
+        } else if (elapsedMs > 0) {
+          el.timerStatus.textContent = "一時停止中";
+          el.startBtn.disabled = false;
+          el.pauseBtn.disabled = true;
+        } else {
+          el.timerStatus.textContent = "停止中";
+          el.startBtn.disabled = false;
+          el.pauseBtn.disabled = true;
+        }
+
+        el.stopBtn.disabled = elapsedMs <= 0;
+      }
+
+      function renderAll() {
+        renderProjectOptions();
+        renderStageOptions();
+        renderStats();
+        renderTimer();
+      }
+
+      function timerLoop() {
+        renderTimer();
+        rafId = requestAnimationFrame(timerLoop);
+      }
+
+      function startTimer() {
+        const project = getCurrentProject();
+        const stage = el.stageSelect.value;
+
+        if (db.timer.running) return;
+
+        const timerMatchesSelection =
+          db.timer.projectId === project.id &&
+          db.timer.stage === stage;
+
+        if (!timerMatchesSelection && db.timer.accumulatedMs > 0) {
+          const shouldDiscard = confirm("一時停止中の時間があります。破棄して現在の作品・工程で開始しますか？");
+          if (!shouldDiscard) return;
+          db.timer.accumulatedMs = 0;
+        }
+
+        db.timer.projectId = project.id;
+        db.timer.stage = stage;
+        db.timer.running = true;
+        db.timer.startedAt = Date.now();
+        saveData();
+        renderTimer();
+      }
+
+      function pauseTimer() {
+        if (!db.timer.running) return;
+        db.timer.accumulatedMs = getTimerElapsedMs();
+        db.timer.running = false;
+        db.timer.startedAt = null;
+        saveData(true);
+        renderTimer();
+      }
+
+      function stopAndRecordTimer() {
+        const elapsedMs = getTimerElapsedMs();
+        const seconds = Math.floor(elapsedMs / 1000);
+        if (seconds <= 0) return;
+
+        const project = db.projects[db.timer.projectId];
+        if (!project) {
+          showToast("記録先の作品が見つかりませんでした。");
+          resetTimerForCurrentSelection();
+          return;
+        }
+
+        ensureProjectShape(project);
+        const stage = db.timer.stage;
+        if (!project.stages.includes(stage)) {
+          project.stages.push(stage);
+        }
+
+        project.totals[stage] = Number(project.totals[stage] || 0) + seconds;
+
+        const dateKey = localDateKey();
+        project.daily[dateKey] = project.daily[dateKey] || {};
+        project.daily[dateKey][stage] = Number(project.daily[dateKey][stage] || 0) + seconds;
+
+        db.timer = {
+          running: false,
+          startedAt: null,
+          accumulatedMs: 0,
+          projectId: db.currentProjectId,
+          stage: el.stageSelect.value
+        };
+
+        saveData(true);
+        renderAll();
+        showToast(`${formatDuration(seconds)}を記録しました。`);
+      }
+
+      function askText(title, initialValue = "") {
+        return new Promise(resolve => {
+          el.dialogTitle.textContent = title;
+          el.dialogInput.value = initialValue;
+          el.textDialog.showModal();
+          setTimeout(() => {
+            el.dialogInput.focus();
+            el.dialogInput.select();
+          }, 0);
+
+          const handler = () => {
+            el.textDialogForm.removeEventListener("submit", handler);
+            const value = el.textDialog.returnValue === "confirm"
+              ? el.dialogInput.value.trim()
+              : null;
+            resolve(value);
+          };
+
+          el.textDialogForm.addEventListener("submit", handler, { once: true });
+        });
+      }
+
+      async function addProject() {
+        if (db.timer.running || db.timer.accumulatedMs > 0) {
+          showToast("タイマーを記録またはリセットしてから作品を追加してください。");
+          return;
+        }
+
+        const name = await askText("新しい作品名");
+        if (!name) return;
+
+        const id = crypto.randomUUID();
+        db.projects[id] = {
+          id,
+          name,
+          stages: [...DEFAULT_STAGES],
+          totals: Object.fromEntries(DEFAULT_STAGES.map(stage => [stage, 0])),
+          daily: {}
+        };
+        db.currentProjectId = id;
+        db.timer.projectId = id;
+        db.timer.stage = DEFAULT_STAGES[0];
+        saveData(true);
+        renderAll();
+      }
+
+      async function renameProject() {
+        const project = getCurrentProject();
+        const name = await askText("作品名を変更", project.name);
+        if (!name || name === project.name) return;
+        project.name = name;
+        saveData(true);
+        renderProjectOptions();
+        renderTimer();
+      }
+
+      function deleteProject() {
+        const projectIds = Object.keys(db.projects);
+        if (projectIds.length <= 1) {
+          showToast("作品は最低1つ必要です。");
+          return;
+        }
+
+        if (db.timer.running || db.timer.accumulatedMs > 0) {
+          showToast("タイマーを記録またはリセットしてから削除してください。");
+          return;
+        }
+
+        const project = getCurrentProject();
+        const ok = confirm(`「${project.name}」と記録をすべて削除しますか？`);
+        if (!ok) return;
+
+        delete db.projects[project.id];
+        db.currentProjectId = Object.keys(db.projects)[0];
+        const nextProject = getCurrentProject();
+        db.timer.projectId = nextProject.id;
+        db.timer.stage = nextProject.stages[0];
+        saveData(true);
+        renderAll();
+      }
+
+      async function addStage() {
+        const project = getCurrentProject();
+        const name = await askText("新しい工程名");
+        if (!name) return;
+        if (project.stages.includes(name)) {
+          showToast("同じ名前の工程があります。");
+          return;
+        }
+
+        project.stages.push(name);
+        project.totals[name] = 0;
+        saveData(true);
+        renderAll();
+        el.stageSelect.value = name;
+      }
+
+      async function renameStage() {
+        const project = getCurrentProject();
+        const oldName = el.stageSelect.value;
+        const newName = await askText("工程名を変更", oldName);
+        if (!newName || newName === oldName) return;
+        if (project.stages.includes(newName)) {
+          showToast("同じ名前の工程があります。");
+          return;
+        }
+
+        if (db.timer.running && db.timer.projectId === project.id && db.timer.stage === oldName) {
+          showToast("計測中の工程名は変更できません。");
+          return;
+        }
+
+        project.stages = project.stages.map(stage => stage === oldName ? newName : stage);
+        project.totals[newName] = Number(project.totals[oldName] || 0);
+        delete project.totals[oldName];
+
+        for (const dailyRecord of Object.values(project.daily)) {
+          if (Object.prototype.hasOwnProperty.call(dailyRecord, oldName)) {
+            dailyRecord[newName] = Number(dailyRecord[oldName] || 0);
+            delete dailyRecord[oldName];
+          }
+        }
+
+        if (db.timer.projectId === project.id && db.timer.stage === oldName) {
+          db.timer.stage = newName;
+        }
+
+        saveData(true);
+        renderAll();
+        el.stageSelect.value = newName;
+      }
+
+      function deleteStage() {
+        const project = getCurrentProject();
+        if (project.stages.length <= 1) {
+          showToast("工程は最低1つ必要です。");
+          return;
+        }
+
+        const stage = el.stageSelect.value;
+        if (db.timer.running && db.timer.projectId === project.id && db.timer.stage === stage) {
+          showToast("計測中の工程は削除できません。");
+          return;
+        }
+
+        const hasData =
+          Number(project.totals[stage] || 0) > 0 ||
+          Object.values(project.daily).some(record => Number(record[stage] || 0) > 0);
+
+        const message = hasData
+          ? `「${stage}」と、この工程の記録をすべて削除しますか？`
+          : `「${stage}」を削除しますか？`;
+
+        if (!confirm(message)) return;
+
+        project.stages = project.stages.filter(item => item !== stage);
+        delete project.totals[stage];
+        for (const dailyRecord of Object.values(project.daily)) {
+          delete dailyRecord[stage];
+        }
+
+        if (db.timer.projectId === project.id && db.timer.stage === stage) {
+          db.timer.stage = project.stages[0];
+          db.timer.accumulatedMs = 0;
+          db.timer.startedAt = null;
+          db.timer.running = false;
+        }
+
+        saveData(true);
+        renderAll();
+      }
+
+      function exportCsv() {
+        const rows = [["作品", "日付", "工程", "秒", "時間"]];
+
+        for (const project of Object.values(db.projects)) {
+          for (const [date, record] of Object.entries(project.daily)) {
+            for (const [stage, secondsRaw] of Object.entries(record)) {
+              const seconds = Number(secondsRaw || 0);
+              rows.push([
+                project.name,
+                date,
+                stage,
+                String(seconds),
+                (seconds / 3600).toFixed(2)
+              ]);
+            }
+          }
+        }
+
+        const escapeCsv = value => `"${String(value).replaceAll('"', '""')}"`;
+        const csv = "\uFEFF" + rows.map(row => row.map(escapeCsv).join(",")).join("\r\n");
+        downloadBlob(csv, "illustration-work-log.csv", "text/csv;charset=utf-8");
+      }
+
+      function backupData() {
+        const json = JSON.stringify(db, null, 2);
+        downloadBlob(json, "illustration-work-timer-backup.json", "application/json");
+      }
+
+      function downloadBlob(content, filename, type) {
+        const blob = new Blob([content], { type });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = filename;
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        URL.revokeObjectURL(url);
+      }
+
+      async function restoreData(file) {
+        try {
+          const text = await file.text();
+          const parsed = JSON.parse(text);
+          if (!parsed || !parsed.projects || !parsed.currentProjectId) {
+            throw new Error("Invalid backup");
+          }
+
+          if (!confirm("現在のデータをバックアップ内容で上書きしますか？")) return;
+
+          db = parsed;
+          Object.values(db.projects).forEach(ensureProjectShape);
+          db.goalHours = Number(db.goalHours) || 4;
+          db.timer = db.timer || {
+            running: false,
+            startedAt: null,
+            accumulatedMs: 0,
+            projectId: db.currentProjectId,
+            stage: getCurrentProject().stages[0]
+          };
+
+          saveData(true);
+          renderAll();
+          showToast("バックアップを復元しました。");
+        } catch {
+          showToast("バックアップファイルを読み込めませんでした。");
+        } finally {
+          el.restoreInput.value = "";
+        }
+      }
+
+      el.projectSelect.addEventListener("change", () => {
+        if (db.timer.running || db.timer.accumulatedMs > 0) {
+          el.projectSelect.value = db.currentProjectId;
+          showToast("タイマーを記録または終了してから作品を切り替えてください。");
+          return;
+        }
+
+        db.currentProjectId = el.projectSelect.value;
+        const project = getCurrentProject();
+        db.timer.projectId = project.id;
+        db.timer.stage = project.stages[0];
+        saveData();
+        renderAll();
+      });
+
+      el.stageSelect.addEventListener("change", () => {
+        if (db.timer.running) {
+          el.stageSelect.value = db.timer.stage;
+          showToast("計測中は工程を切り替えられません。");
+          return;
+        }
+
+        if (db.timer.accumulatedMs > 0) {
+          el.stageSelect.value = db.timer.stage;
+          showToast("一時停止中の時間を記録またはリセットしてください。");
+          return;
+        }
+
+        db.timer.projectId = db.currentProjectId;
+        db.timer.stage = el.stageSelect.value;
+        saveData();
+      });
+
+      el.goalHours.addEventListener("change", () => {
+        const value = Math.min(24, Math.max(0.25, Number(el.goalHours.value) || 4));
+        db.goalHours = value;
+        el.goalHours.value = value;
+        saveData(true);
+        renderStats();
+      });
+
+      el.startBtn.addEventListener("click", startTimer);
+      el.pauseBtn.addEventListener("click", pauseTimer);
+      el.stopBtn.addEventListener("click", stopAndRecordTimer);
+      el.addProjectBtn.addEventListener("click", addProject);
+      el.renameProjectBtn.addEventListener("click", renameProject);
+      el.deleteProjectBtn.addEventListener("click", deleteProject);
+      el.addStageBtn.addEventListener("click", addStage);
+      el.renameStageBtn.addEventListener("click", renameStage);
+      el.deleteStageBtn.addEventListener("click", deleteStage);
+      el.exportCsvBtn.addEventListener("click", exportCsv);
+      el.backupBtn.addEventListener("click", backupData);
+      el.restoreBtn.addEventListener("click", () => el.restoreInput.click());
+      el.restoreInput.addEventListener("change", () => {
+        const file = el.restoreInput.files?.[0];
+        if (file) restoreData(file);
+      });
+
+      window.addEventListener("beforeunload", saveData);
+
+      renderAll();
+      timerLoop();
+    })();
+  </script>
+</body>
+</html>
